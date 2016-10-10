@@ -45,14 +45,18 @@ public:
         m_participants.erase(participant);
     }
 
-    void deliver(const chat_message &msg)
+    // send message to all participants in this room
+    void deliver(const chat_message &msg, chat_participant_ptr speaker)
     {
         m_recent_msgs.push_back(msg);
         while (m_recent_msgs.size() > max_recent_msgs)
             m_recent_msgs.pop_front();
 
         for (auto participant: m_participants)
-            participant->deliver(msg);
+        {
+            if (participant != speaker)
+                participant->deliver(msg);
+        }
     }
 
 private:
@@ -141,7 +145,7 @@ private:
                 {
                     if (!ec)
                     {
-                        m_room.deliver(m_read_msg);
+                        m_room.deliver(m_read_msg, self); // which client's message
                         do_read_header();
                     }
                     else
