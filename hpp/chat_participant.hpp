@@ -34,6 +34,8 @@ public:
 private:
     void do_write();
     void do_read_header();
+    void do_read_username_header();
+    void do_read_username();
     void do_read_body();
 
     tcp::socket m_socket;

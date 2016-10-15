@@ -20,6 +20,8 @@ public:
 private:
     void do_connect(tcp::resolver::iterator endpoint_iterator);
     void do_read_header();
+    void do_read_username_header();
+    void do_read_username();
     void do_read_body();
     void do_write();
 

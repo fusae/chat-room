@@ -1,6 +1,9 @@
 server: chat_room.o chat_session.o chat_server.o server.o
 	g++ -Wall -std=c++11 $^ -o $@ -lboost_system
 
+server_debug: chat_room.o chat_session.o chat_server.o server.o
+	g++ -g -Wall -std=c++11 $^ -o $@ -lboost_system
+
 client: chat_client.o
 	g++ -Wall -std=c++11 $^ -o $@ -lboost_system -lpthread
 

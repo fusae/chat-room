@@ -56,13 +56,53 @@ void chat_session::do_read_header()
             {
                 if (!ec && m_read_msg.decode_header())
                 {
-                    do_read_body();
+                    do_read_username_header();
+//                    do_read_body();
                 }
                 else
                 {
                     m_room.leave(shared_from_this());
                 }
             });
+}
+
+void chat_session::do_read_username_header()
+{
+    auto self(shared_from_this()); // ?
+    boost::asio::async_read(m_socket,
+            boost::asio::buffer(m_read_msg.data()+chat_message::header_length,
+                chat_message::username_header_length),
+            [this, self](boost::system::error_code ec, std::size_t /*length*/)
+            {
+                if (!ec && m_read_msg.decode_username_header())
+                {
+                    do_read_username();
+//                    do_read_body();
+                }
+                else
+                {
+                    m_room.leave(shared_from_this());
+                }
+            });
+}
+
+void chat_session::do_read_username()
+{
+   auto self(shared_from_this()); 
+   boost::asio::async_read(m_socket,
+           boost::asio::buffer(m_read_msg.username(),
+               m_read_msg.username_length()),
+           [this, self](boost::system::error_code ec, std::size_t /*length*/)
+           {
+            if (!ec)
+            {
+                do_read_body();
+            }
+            else
+            {
+                m_room.leave(shared_from_this());
+            }
+           });
 }
 
 void chat_session::do_read_body()

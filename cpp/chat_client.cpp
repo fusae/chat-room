@@ -58,6 +58,44 @@ void chat_client::do_read_header()
             {
                 if (!ec && m_read_msg.decode_header())
                 {
+                    do_read_username_header();
+                }
+                else
+                {
+                    // error
+                    m_socket.close();
+                }
+            });
+}
+
+void chat_client::do_read_username_header()
+{
+    // call async_read
+    boost::asio::async_read(m_socket,
+            boost::asio::buffer(m_read_msg.data()+chat_message::header_length, chat_message::username_header_length),
+            [this](boost::system::error_code ec, std::size_t /*length*/)
+            {
+                if (!ec && m_read_msg.decode_username_header())
+                {
+                    do_read_username();
+                }
+                else
+                {
+                    // error
+                    m_socket.close();
+                }
+            });
+}
+
+void chat_client::do_read_username()
+{
+    // call async_read
+    boost::asio::async_read(m_socket,
+            boost::asio::buffer(m_read_msg.username(), m_read_msg.username_length()),
+            [this](boost::system::error_code ec, std::size_t /*length*/)
+            {
+                if (!ec)
+                {
                     do_read_body();
                 }
                 else
@@ -77,6 +115,9 @@ void chat_client::do_read_body()
             {
                 if (!ec)
                 {
+                    std::cout << "\n";
+                    std::cout.write(m_read_msg.username(), m_read_msg.username_length());
+                    std::cout << ": ";
                     std::cout.write(m_read_msg.body(), m_read_msg.body_length());
                     std::cout << "\n";
                     do_read_header();
@@ -131,13 +172,26 @@ int main(int argc, char *argv[])
 
         std::thread t([&io_service](){io_service.run();});
 
+        char username[chat_message::max_username_length + 1];
+        std::cout << "Please input the username: ";
+        std::cin.getline(username, chat_message::max_username_length + 1);
+        std::cout << username << ": ";
+
         char line[chat_message::max_body_length + 1];
         while (std::cin.getline(line, chat_message::max_body_length + 1))
         {
             chat_message msg;
+            msg.username_length(std::strlen(username));
+            std::memcpy(msg.username(), username, msg.username_length());
+            msg.encode_username_header();
+
             msg.body_length(std::strlen(line));
             std::memcpy(msg.body(), line, msg.body_length());
             msg.encode_header();
+
+            std::cout.write(msg.username(), msg.username_length());
+            std::cout << ": ";
+
             c.write(msg);
         }
 
