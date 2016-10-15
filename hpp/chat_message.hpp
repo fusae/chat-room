@@ -10,7 +10,7 @@ class chat_message
 public:
     enum {header_length = 4};
     enum {username_header_length = 2};
-    enum {max_username_length = 5};
+    enum {max_username_length = 20};
     enum {max_body_length = 512};
 
     chat_message(): body_length_(0), username_length_(0) {}

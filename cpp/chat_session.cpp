@@ -109,8 +109,8 @@ void chat_session::do_read_body()
 {
     auto self(shared_from_this()); // ?
     boost::asio::async_read(m_socket,
-            boost::asio::buffer(m_read_msg.body(),
-                m_read_msg.body_length()),
+            boost::asio::buffer(m_read_msg.body()-chat_message::max_username_length+m_read_msg.username_length(),
+                chat_message::max_username_length-m_read_msg.username_length()+m_read_msg.body_length()),
             [this, self](boost::system::error_code ec, std::size_t /*length*/)
             {
                 if (!ec)

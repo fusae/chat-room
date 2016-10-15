@@ -110,7 +110,7 @@ void chat_client::do_read_body()
 {
     // call async_read
     boost::asio::async_read(m_socket,
-            boost::asio::buffer(m_read_msg.body(), m_read_msg.body_length()),
+            boost::asio::buffer(m_read_msg.body()-chat_message::max_username_length+m_read_msg.username_length(), chat_message::max_username_length-m_read_msg.username_length()+m_read_msg.body_length()),
             [this](boost::system::error_code ec, std::size_t /*length*/)
             {
                 if (!ec)
@@ -181,13 +181,13 @@ int main(int argc, char *argv[])
         while (std::cin.getline(line, chat_message::max_body_length + 1))
         {
             chat_message msg;
-            msg.username_length(std::strlen(username));
-            std::memcpy(msg.username(), username, msg.username_length());
-            msg.encode_username_header();
-
             msg.body_length(std::strlen(line));
-            std::memcpy(msg.body(), line, msg.body_length());
             msg.encode_header();
+            msg.username_length(std::strlen(username));
+            msg.encode_username_header();
+            std::memcpy(msg.username(), username, msg.username_length());
+
+            std::memcpy(msg.body(), line, msg.body_length());
 
             std::cout.write(msg.username(), msg.username_length());
             std::cout << ": ";
